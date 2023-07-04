@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const fs = require("fs");
-const { v4: uuid } = require("uuid");
+const newsController = require("../controllers/newsController")
 
 
 router.route("/").get(newsController.getAllNews);
@@ -11,6 +10,7 @@ router.route("/:id").patch(newsController.updateNewsById);
 router.route("/:id").delete(newsController.deleteNewsById);
 
 module.exports = router;
+
 
 
 
