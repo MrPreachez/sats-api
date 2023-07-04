@@ -20,6 +20,12 @@ exports.down = function (knex) {
     table.string("contact_email").notNullable();
     table.string("member_status").notNullable();
     table.string("password").notNullable();
+    table.string("reset_password_token");
+    table.dateTime("reset_password_expires");
     table.timestamps(true, true);
   });
+};
+
+exports.down = function (knex) {
+  return knex.schema.dropTable("members");
 };
