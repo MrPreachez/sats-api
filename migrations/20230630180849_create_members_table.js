@@ -2,13 +2,7 @@
  * @param { import("knex").Knex } knex
  * @returns { Promise<void> }
  */
-exports.up = function (knex) {};
-
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
-exports.down = function (knex) {
+exports.up = function (knex) {
   return knex.schema.createTable("members", (table) => {
     table.uuid("id").primary();
     table.string("member_name").notNullable();
@@ -25,6 +19,7 @@ exports.down = function (knex) {
     table.timestamps(true, true);
   });
 };
+
 
 exports.down = function (knex) {
   return knex.schema.dropTable("members");
