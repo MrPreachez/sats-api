@@ -4,10 +4,9 @@
  */
 exports.up = function (knex) {
   return knex.schema.createTable("images", (table) => {
-    table.increments("id").primary();
+    table.uuid("id").primary();
     table
-      .integer("news_id")
-      .unsigned()
+      .integer("post_id").unsigned()
       .references("news.id")
       .onUpdate("CASCADE")
       .onDelete("CASCADE");

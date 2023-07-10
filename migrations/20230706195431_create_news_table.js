@@ -5,10 +5,11 @@
 exports.up = function (knex) {
   return knex.schema.createTable("news", (table) => {
     table.increments("id").primary();
-    table.string("title", 255).notNullable();
-    table.text("article").notNullable();
-    table.integer("image_count").unsigned().defaultTo(0);
+    table.string("post_title", 255).notNullable();
+    table.string('post_subtitle', 255);
+    table.string("post_category", 36);
     table.timestamps(true, true);
+    table.timestamp('published_at');
   });
 };
 
@@ -19,3 +20,6 @@ exports.up = function (knex) {
 exports.down = function (knex) {
   return knex.schema.dropTable("news");
 };
+
+
+

@@ -4,7 +4,8 @@ const router = express.Router();
 const newsController = require("../controllers/newsController.js")
 
 module.exports = ({upload}) => {
-router.route("/").post(upload.array('images', 3), newsController.createNews);
+router.route("/").post(newsController.createNews);
+router.route("/article").post(newsController.uploadNewsText)
 router.route("/").get(newsController.getAllNews);
 router.route("/:id").get(newsController.getNewsById);
 router.route("/:id").patch(newsController.updateNewsById);
