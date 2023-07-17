@@ -6,12 +6,13 @@ exports.up = function (knex) {
   return knex.schema.createTable("images", (table) => {
     table.uuid("id").primary();
     table
-      .integer("post_id").unsigned()
+      .integer("post_id")
+      .unsigned()
       .references("news.id")
       .onUpdate("CASCADE")
       .onDelete("CASCADE");
-    table.binary("image");
     table.string("image_name");
+    table.string("image_path");
     table.timestamps(true, true);
   });
 };

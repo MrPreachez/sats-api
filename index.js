@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors");
 require("dotenv").config();
 const multer = require("multer");
+const path = require("path");
 
 const PORT = process.env.PORT || 8081;
 
@@ -16,13 +17,25 @@ app.use(express.static("public"));
 //FILE STORAGE
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "./public/assets");
+    cb(null, path.join(__dirname, "public", "assets"));
   },
   filename: function (req, file, cb) {
     cb(null, file.originalname);
   },
 });
-const upload = multer({ storage });
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 1000000 // 1000000 Bytes = 1 MB
+  },
+  fileFilter: function (req, file, cb) {
+    if (!file.originalname.match(/\.(png|jpe?g|gif|svg)$/i)) {
+      // upload only png, jpg/jpeg, gif, and svg format
+      return cb(new Error('Please upload an Image'));
+    }
+    cb(null, true);
+  }
+});
 
 const newsRoutes = require("./routes/news");
 const memberRoutes = require("./routes/members");

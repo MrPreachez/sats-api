@@ -23,129 +23,105 @@ const createNews = async (req, res) => {
 //2) Upload text
 const uploadNewsText = async (req, res) => {
   try {
-    const { article, post_id } = req.body;
-    await knex("articles").insert({ 
-      id:uuidv4(),
+    const { article } = req.body;
+    const { post_id } = req.params.post_id;
+    await knex("articles").insert({
+      id: uuidv4(),
       post_id,
-      article
-       });
-    res.status(201).send('Article uploaded successfully')
+      article,
+    });
+    res.status(201).send("Article uploaded successfully");
   } catch (err) {
-    res.status(400).send('Error uploading article to database')
+    res.status(400).send("Error uploading article to database");
   }
 };
 //3) Upload photo. Max 3
+//  handle file management, such as naming conflicts, removing or updating images,
+// and ensuring appropriate security measures to prevent unauthorized access to the files.
 const uploadNewsImage = async (req, res) => {
   try {
-    const { originalname, buffer, post_id } = req.file;
+    // const { image_name, buffer, post_id } = req.file;
+    console.log(req.file);
+
+    const image_name = req.file.originalname;
+    const post_id = req.params.post_id;
+
+    const image_path = "./public/assets/${image_name}";
+
     await knex("images").insert({
-      id:uuidv4,
+      id: uuidv4(),
       post_id,
-      originalname,
-      buffer
-    })
+      image_name,
+      image_path,
+    });
+    res.status(201).send("Image uploaded successfully");
+  } catch (error) {
+    console.error(error);
+    res.status(400).send("Error uploading image to database");
   }
-  catch(err) {
-    res.status(400).send('Error uploading image to database')
+};
+//4) Publish News
+
+const publishNewsById = async (req, res) => {
+  try {
+    const post_id = req.params.post_id;
+
+    const news = await knex("news").where("id", post_id).first();
+
+    if (!post_id) {
+      res.status(404).json({ error: "post_id not found" });
+    }
+    news.published_at = newDate();
+
+    // Save the updated story in the database
+    await knex("news").where("id", post_id).update({
+      published_at: news.published_at,
+    });
+
+    res.status(200).json({ message: "News update published successfully" });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to publish news" });
   }
-}
-//4) Done button
+};
+
+const getNewsById = async (req, res) => {
+  try {
+    const postId = req.params.post_id;
+    const news = await knex("news")
+      .select("news.*", "images.*", "articles.*")
+      .leftJoin("images", "news.id", "images.post_id")
+      .leftJoin("articles", "news.id", "articles.post_id")
+      .where("news.id", postId);
+
+    // Check if the news item exists and map over to create a new array with all images
+    if (news.length > 0) {
+      const newsPost = news[0];
+      const images = news.map((post) => ({
+        id: post.id,
+        image: post.image,
+        image_name: post.image_name,
+        created_at: post.created_at,
+        updated_at: post.updated_at,
+      }));
+
+      // Add the images array to the news item
+      newsPost.images = images;
+
+      // Return the news item with associated data
+      res.json(newsPost);
+    } else {
+      res.status(400).json({ message: "Post not found" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
 
 // Remember to handle any necessary error cases, such as
 // validating the request body and handling errors related to the database operations
 
-// const createNews = async (req, res) => {
-//   const { title, article } = req.body;
-//   console.log(title, article)
-//   const files = req.files;
-//   console.log(files)
-
-//   try {
-//     await knex("news").insert({
-//       id,
-//       title,
-//       article,
-//     });
-
-//     // console.
-//     // res.status().send("News article created in db")
-
-//     const insertedImages = [];
-//     for (const file of files) {
-//       const { originalname, buffer } = file;
-//       const [imageId] = await knex("images").insert({
-//         id,
-//         news_id: newsId,
-//         image: buffer,
-//         image_name: originalname,
-//       });
-//       insertedImages.push(imageId);
-//     }
-
-//     // Update the image_count in the news table
-//     await knex("news")
-//       .where("id", newsId)
-//       .update("image_count", insertedImages.length);
-
-//     // Retrieve the inserted news article
-//     const insertedNews = await knex("news").where("id", newsId).first();
-
-//     res.json({
-//       message: "New news article created",
-//       news: insertedNews,
-//       images: insertedImages,
-//     });
-//   } catch (error) {
-//     console.error("Error creating news article", error);
-//     res.status(500).json({ error: "Failed to create news article" });
-//   }
-// };
-// const createNews = async (req, res) => {
-//   const { title, article } = req.body;
-//   const files = req.files;
-
-//   try {
-//     // Insert the news article into the database
-//     const [newsId] = await knex('news').insert({
-//       title,
-//       article
-//     });
-
-//     const insertedImages = [];
-//     for (const file of files) {
-//       const { originalname, buffer } = file;
-//       const [imageId] = await knex('images').insert({
-//         news_id: newsId,
-//         image: buffer,
-//         image_name: originalname
-//       });
-
-//       insertedImages.push(imageId);
-//     }
-
-//     // Update the image_count in the news table
-//     await knex('news')
-//       .where('id', newsId)
-//       .update('image_count', insertedImages.length);
-
-//     // Retrieve the inserted news article
-//     const insertedNews = await knex('news')
-//       .where('id', newsId)
-//       .first();
-
-//     res.json({ message: 'New news article created', news: insertedNews, images: insertedImages });
-//   } catch (error) {
-//     console.error('Error creating news article:', error);
-//     res.status(500).json({ error: 'Failed to create news article' });
-//   }
-// };
-
 function getAllNews(req, res) {
   // Implement logic to retrieve all news
-}
-
-function getNewsById(req, res) {
-  // Implement logic to retrieve a specific news by ID
 }
 
 function updateNewsById(req, res) {
@@ -160,6 +136,7 @@ module.exports = {
   createNews,
   uploadNewsText,
   uploadNewsImage,
+  publishNewsById,
   updateNewsById,
   deleteNewsById,
   getAllNews,
